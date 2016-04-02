@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+#
+# This file is part of Pearl (https://github.com/fsquillace/pearl).
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Library General Public License as published
+# by the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Manage the favourite commands
+# List, add, remove commands in a list and execute them using Cntrl-h combination.
+# vim: ft=sh
+
+set -eu
+
+function cmd() {
+    local TEMP=`getopt -o raph --long remove,add,print,help  -n 'cmd' -- "$@"`
+
+    if [ $? != 0 ] ; then echo "Error on parsing the command line. Try cmd -h" >&2 ; return ; fi
+
+    # Note the quotes around `$TEMP': they are essential!
+    eval set -- "$TEMP"
+
+    local OPT_ADD=false
+    local OPT_REMOVE=false
+    local OPT_PRINT=false
+    local OPT_HELP=false
+    while true ; do
+	case "$1" in
+	    -a|--add) OPT_ADD=true ; shift ;;
+	    -r|--remove) OPT_REMOVE=true ; shift ;;
+	    -p|--print) OPT_PRINT=true ; shift ;;
+            -h|--help) OPT_HELP=true ; shift ;;
+            --) shift ; break ;;
+	    *) echo "Internal error!" ; return 127 ;;
+	esac
+    done
+
+    local args=()
+    for arg do
+        args+=("$arg")
+    done
+
+
+    if $OPT_HELP
+    then
+        echo "Usage: cmd [options] <num>"
+        echo -e "Take the command from the list and store to the history. Type Ctrl+h to paste into the command line."
+        echo -e "Options:"
+        echo -e "\t-p, --print <num>               Print the entry selected"
+        echo -e "\t-a, --add <cmd> [<comments>]    Add a command with comments"
+        echo -e "\t-r, --remove <num>              Remove a command entry"
+        echo -e "\t-h, --help                      Show this help message"
+        return 0
+    fi
+
+    #################### END OPTION PARSING ############################
+
+    touch $PEARL_HOME/commands
+
+    if $OPT_REMOVE
+    then
+        if [ ${#args[@]} -eq 1 ]; then
+            local cmds=$(sed -e "${args[0]}d" $PEARL_HOME/commands)
+            echo "$cmds" > $PEARL_HOME/commands
+        else
+            echo "Error the --remove option needs only one argument."
+            return 127
+        fi
+
+    elif $OPT_ADD
+    then
+        if [ ${#args[@]} -eq 1 ]; then
+            local comments=""
+        else
+            local comments=${args[1]}
+        fi
+        if [ ${#args[@]} -le 2 ]; then
+            echo "${args[0]}%;%$comments" >> $PEARL_HOME/commands
+        else
+            echo "Error the --add option needs maximum two arguments"
+        fi
+
+    elif $OPT_PRINT
+    then
+        if [ ${#args[@]} -eq 1 ]; then
+            awk -v num=${args[0]} -F '%;%' 'NR == num {print $1}' $PEARL_HOME/commands
+        else
+            echo "Error the --print option needs only one argument."
+            return 127
+        fi
+    else
+        # If no file is spcified list all commands
+        if [ ${#args[@]} -eq 0 ]; then
+            cat $PEARL_HOME/commands | awk -F '%;%' '{print "\033[01;32m"NR": \033[01;33m"$2"\n\033[01;00m   "$1"\n"}'
+        elif [ ${#args[@]} -eq 1 ]; then
+            local entry=$(awk -v num=${args[0]} -F '%;%' 'NR == num {print $1}' $PEARL_HOME/commands)
+            echo "bind '\"\C-g\":\"$entry\"'"  > $PEARL_TEMPORARY/new_cmd
+            source $PEARL_TEMPORARY/new_cmd
+            echo "Type C-g to get the command"
+        else
+            echo "Error too many arguments!"
+            return 127
+        fi
+    fi
+
+    return 0
+}
+
+cmd $@

@@ -1,18 +1,70 @@
 CMD
 ===
 
-Allows to list your own favorite commands. Type `cmd --help` to see all the
-available options.
+|Project Status|Communication|
+|:-----------:|:-----------:|
+|[![Build status](https://api.travis-ci.org/pearl-hub/cmd.png?branch=master)](https://travis-ci.org/pearl-hub/cmd) | [![Join the gitter chat at https://gitter.im/pearl-hub/cmd](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pearl-hub/cmd?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) |
 
-Example of using:
+**Table of Contents**
+- [Description](#description)
+- [Quickstart](#quickstart)
+- [Installation](#installation)
+- [Troubleshooting](#troubleshooting)
 
-    $ cmd
-    Lists all the commands
+Description
+===========
+Introduce in this section the following information:
 
-    $ cmd -a "ls -l" "This is the corresponding comment"
-    Adds a new command
+- name: `cmd`
+- description: Store your favourite commands and scripts in one place.
+- author: Filippo Squillace
+- username: fsquillace
+- OS compatibility: linux, osx
 
-    $ cmd 'NUM'
-    Stores the corresponding command specified by the entry. Then, you just
-    need to type Cntrl-g to put it in the command line. 
+Quickstart
+==========
+
+- To add/update a new command/script:
+
+```sh
+$ cmd add myls
+Write the script below and press Cntrl-c on a new line to save it:
+ls -l ~
+```
+
+- To execute the command/script:
+
+```sh
+$ cmd execute myls
+ls -l ~
+Are you sure to run the script? (N/y)> y
+...
+...
+```
+
+- To list of the available commands:
+
+```sh
+$ cmd list
+myls
+```
+
+Installation
+============
+This package needs to be installed via [Pearl](https://github.com/pearl-core/pearl) system.
+
+```sh
+pearl install cmd
+```
+
+Dependencies
+------------
+The main dependencies are the following:
+
+- [Pearl](https://github.com/pearl-core/pearl)
+
+Troubleshooting
+===============
+This section has been left blank intentionally.
+It will be filled up as soon as troubles come in!
 

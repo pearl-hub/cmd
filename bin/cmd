@@ -1,118 +1,209 @@
 #!/usr/bin/env bash
+
+set -e -o pipefail
+
+[ -z "$PEARL_ROOT" ] && { echo "Error: The variable PEARL_ROOT must be specified in order to run this script."; exit 1; }
+[ -d "$PEARL_ROOT" ] || { echo "Error: The value in variable PEARL_ROOT is not a directory."; exit 2; }
+
+[ -z "$CMD_CONFIG_DIR" ] && { echo "Error: The variable CMD_CONFIG_DIR must be specified in order to run this script."; exit 1; }
+[ -d "$CMD_CONFIG_DIR" ] || { echo "Error: The value in variable CMD_CONFIG_DIR is not a directory."; exit 2; }
+
+CMD_ROOT="${CMD_ROOT:-$(readlink -f $(dirname $(readlink -f "$0"))/..)}"
+
+source "${PEARL_ROOT}/lib/utils/utils.sh"
+source "${CMD_ROOT}/lib/core.sh"
+
+CMD=cmd
+DESCRIPTION="Store the favourite commands and scripts in one place."
+
+#######################################
+# Provide the usage information.
 #
-# This file is part of Pearl (https://github.com/fsquillace/pearl).
+# Globals:
+#   CMD (RO)          :  The name of the program.
+#   DESCRIPTION (RO)  :  The description of the program.
+#   CMD_ROOT (RO)     :  The location of the program.
+# Arguments:
+#   None
+# Returns:
+#   0
+# Output:
+#   The usage helper.
+#######################################
+usage() {
+    echo -e "$CMD (v$(cat $CMD_ROOT/VERSION)): $DESCRIPTION"
+    echo -e "Usage: $CMD <command> [args]"
+    echo
+    echo -e "Commands:"
+    echo -e "  a[dd]       alias           Add/Update a command using the editor in"
+	echo -e "                              \$EDITOR variable if exists otherwise it uses cat."
+    echo -e "  r[emove]    alias           Remove the command."
+    echo -e "  e[xecute]   alias           Execute the command."
+    echo -e "  l[ist]                      List all the available commands."
+    echo -e "  p[rint]     alias           Print the command."
+    echo -e "  h[elp], [-h], [--help]      Show this help message."
+    echo
+	return 0
+}
+
+#######################################
+# Check if the option provided to the command
+# are correct.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU Library General Public License as published
-# by the Free Software Foundation; either version 2, or (at your option)
-# any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Manage the favourite commands
-# List, add, remove commands in a list and execute them using Cntrl-h combination.
-# vim: ft=sh
-
-set -eu
-
-function cmd() {
-    local TEMP=`getopt -o raph --long remove,add,print,help  -n 'cmd' -- "$@"`
-
-    if [ $? != 0 ] ; then echo "Error on parsing the command line. Try cmd -h" >&2 ; return ; fi
-
-    # Note the quotes around `$TEMP': they are essential!
-    eval set -- "$TEMP"
-
-    local OPT_ADD=false
-    local OPT_REMOVE=false
-    local OPT_PRINT=false
-    local OPT_HELP=false
-    while true ; do
-	case "$1" in
-	    -a|--add) OPT_ADD=true ; shift ;;
-	    -r|--remove) OPT_REMOVE=true ; shift ;;
-	    -p|--print) OPT_PRINT=true ; shift ;;
-            -h|--help) OPT_HELP=true ; shift ;;
-            --) shift ; break ;;
-	    *) echo "Internal error!" ; return 127 ;;
-	esac
-    done
-
-    local args=()
-    for arg do
-        args+=("$arg")
-    done
-
-
+# Globals:
+#   COMMAND_ADD (RO,bool)     :  true if the command has been specified.
+#   COMMAND_REMOVE (RO,bool)  :  true if the command has been specified.
+#   COMMAND_EXECUTE (RO,bool) :  true if the command has been specified.
+#   COMMAND_PRINT (RO,bool)   :  true if the command has been specified.
+#   COMMAND_LIST (RO,bool)    :  true if the command has been specified.
+#   OPT_HELP (RO,bool)        :  true if the command has been specified.
+#   ARGS (RO)                 :  the non positional arguments.
+#   COMMAND_ARGS (RO)         :  the command arguments.
+# Arguments:
+#   None
+# Returns:
+#   0                         : Checks succeeded.
+#   1                         : Checks did not succeed.
+# Output:
+#   The error message in case checks will not succeed.
+#######################################
+check_cli(){
+    $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_EXECUTE || \
+	$COMMAND_PRINT || \
+	$COMMAND_LIST || \
+	$OPT_HELP || die "No command has been specified. Run: $CMD --help"
     if $OPT_HELP
     then
-        echo "Usage: cmd [options] <num>"
-        echo -e "Take the command from the list and store to the history. Type Ctrl+h to paste into the command line."
-        echo -e "Options:"
-        echo -e "\t-p, --print <num>               Print the entry selected"
-        echo -e "\t-a, --add <cmd> [<comments>]    Add a command with comments"
-        echo -e "\t-r, --remove <num>              Remove a command entry"
-        echo -e "\t-h, --help                      Show this help message"
-        return 0
+        if $COMMAND_ADD || $COMMAND_REMOVE || \
+			$COMMAND_EXECUTE || \
+			$COMMAND_PRINT || $COMMAND_LIST
+        then
+            die "The help option must be used exclusively"
+        fi
+    fi
+    if [ "$ARGS" != "" ]
+    then
+        die "No arguments are needed. Run: $CMD --help"
     fi
 
-    #################### END OPTION PARSING ############################
-
-    touch $PEARL_HOME/commands
-
-    if $OPT_REMOVE
+	# All commands are supposed to get at most one argument
+	if $COMMAND_LIST || $OPT_HELP
+	then
+		if [[ ${#COMMAND_ARGS[@]} -ne 0 ]]
+		then
+            die "Too many arguments for the given command. Run: $CMD --help"
+		fi
+	fi
+	if $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_EXECUTE || \
+	$COMMAND_PRINT
     then
-        if [ ${#args[@]} -eq 1 ]; then
-            local cmds=$(sed -e "${args[0]}d" $PEARL_HOME/commands)
-            echo "$cmds" > $PEARL_HOME/commands
-        else
-            echo "Error the --remove option needs only one argument."
-            return 127
-        fi
-
-    elif $OPT_ADD
-    then
-        if [ ${#args[@]} -eq 1 ]; then
-            local comments=""
-        else
-            local comments=${args[1]}
-        fi
-        if [ ${#args[@]} -le 2 ]; then
-            echo "${args[0]}%;%$comments" >> $PEARL_HOME/commands
-        else
-            echo "Error the --add option needs maximum two arguments"
-        fi
-
-    elif $OPT_PRINT
-    then
-        if [ ${#args[@]} -eq 1 ]; then
-            awk -v num=${args[0]} -F '%;%' 'NR == num {print $1}' $PEARL_HOME/commands
-        else
-            echo "Error the --print option needs only one argument."
-            return 127
-        fi
-    else
-        # If no file is spcified list all commands
-        if [ ${#args[@]} -eq 0 ]; then
-            cat $PEARL_HOME/commands | awk -F '%;%' '{print "\033[01;32m"NR": \033[01;33m"$2"\n\033[01;00m   "$1"\n"}'
-        elif [ ${#args[@]} -eq 1 ]; then
-            local entry=$(awk -v num=${args[0]} -F '%;%' 'NR == num {print $1}' $PEARL_HOME/commands)
-            echo "bind '\"\C-g\":\"$entry\"'"  > $PEARL_TEMPORARY/new_cmd
-            source $PEARL_TEMPORARY/new_cmd
-            echo "Type C-g to get the command"
-        else
-            echo "Error too many arguments!"
-            return 127
-        fi
+		if [[ ${#COMMAND_ARGS[@]} -ne 1 ]]
+		then
+            die "Only one alias is accepted. Run: $CMD --help"
+		fi
     fi
 
     return 0
 }
 
-cmd $@
+
+#######################################
+# Parse the command input.
+#
+# Globals:
+#   COMMAND_ADD (WO,bool)     :  true if the command has been specified.
+#   COMMAND_REMOVE (WO,bool)  :  true if the command has been specified.
+#   COMMAND_EXECUTE (WO,bool) :  true if the command has been specified.
+#   COMMAND_PRINT (WO,bool)   :  true if the command has been specified.
+#   COMMAND_LIST (WO,bool)    :  true if the command has been specified.
+#   OPT_HELP (WO,bool)        :  true if the command has been specified.
+#   ARGS (WO)                 :  the non positional arguments.
+#   COMMAND_ARGS (WO)         :  the command arguments.
+# Arguments:
+#   opts ($@)                 :  the program arguments.
+# Returns:
+#   0                         : Parsing succeeded.
+#   1                         : Parsing did not succeed.
+# Output:
+#   The error message in case parsing will not succeed.
+#######################################
+function parse_arguments(){
+    COMMAND_ADD=false
+    COMMAND_REMOVE=false
+    COMMAND_EXECUTE=false
+    COMMAND_LIST=false
+    COMMAND_PRINT=false
+    COMMAND_ARGS=()
+    OPT_HELP=false
+
+    for opt in "$@"
+    do
+	case "$opt" in
+	    add|a)
+		COMMAND_ADD=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+	    remove|r)
+		COMMAND_REMOVE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+	    execute|e)
+		COMMAND_EXECUTE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+	    list|l)
+		COMMAND_LIST=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+	    print|p)
+		COMMAND_PRINT=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+
+	    help|h|-h|--help) OPT_HELP=true ; shift ;;
+
+	    --) shift ; break ;;
+	    -*) die "Invalid option $1" ;;
+	    *) break ;;
+	esac
+    done
+
+    ARGS=()
+    for arg in "$@"
+    do
+	ARGS+=("$arg")
+    done
+}
+
+#######################################
+# Check if the option provided to the command
+# are correct.
+#
+# Globals:
+#   COMMAND_ADD (RO,bool)     :  true if the command has been specified.
+#   COMMAND_REMOVE (RO,bool)  :  true if the command has been specified.
+#   COMMAND_EXECUTE (RO,bool) :  true if the command has been specified.
+#   COMMAND_PRINT (RO,bool)   :  true if the command has been specified.
+#   COMMAND_LIST (RO,bool)    :  true if the command has been specified.
+#   OPT_HELP (RO,bool)        :  true if the command has been specified.
+#   ARGS (RO)                 :  the non positional arguments.
+#   COMMAND_ARGS (RO)         :  the command arguments.
+# Arguments:
+#   None
+# Returns:
+#   Depends on the command specified.
+# Output:
+#   Depends on the command specified.
+#######################################
+function execute_operation(){
+    $OPT_HELP && usage && return
+
+    if $COMMAND_ADD; then
+        add_command "${COMMAND_ARGS[0]}"
+    elif $COMMAND_REMOVE; then
+		remove_command "${COMMAND_ARGS[0]}"
+    elif $COMMAND_EXECUTE; then
+		execute_command "${COMMAND_ARGS[0]}"
+    elif $COMMAND_LIST; then
+		list_command
+    elif $COMMAND_PRINT; then
+		print_command "${COMMAND_ARGS[0]}"
+    fi
+
+    return 0
+}
+
+parse_arguments "$@"
+check_cli
+execute_operation
+# vim: set ts=4 sw=4 noet:

@@ -36,14 +36,14 @@ usage() {
     echo
     echo -e "Commands:"
     echo -e "  a[dd]       alias           Add/Update a command using the editor in"
-	echo -e "                              \$EDITOR variable if exists otherwise it uses cat."
+    echo -e "                              \$EDITOR variable if exists otherwise it uses cat."
     echo -e "  r[emove]    alias           Remove the command."
     echo -e "  e[xecute]   alias           Execute the command."
     echo -e "  l[ist]                      List all the available commands."
     echo -e "  p[rint]     alias           Print the command."
     echo -e "  h[elp], [-h], [--help]      Show this help message."
     echo
-	return 0
+    return 0
 }
 
 #######################################
@@ -69,14 +69,14 @@ usage() {
 #######################################
 check_cli(){
     $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_EXECUTE || \
-	$COMMAND_PRINT || \
-	$COMMAND_LIST || \
-	$OPT_HELP || die "No command has been specified. Run: $CMD --help"
+    $COMMAND_PRINT || \
+    $COMMAND_LIST || \
+    $OPT_HELP || die "No command has been specified. Run: $CMD --help"
     if $OPT_HELP
     then
         if $COMMAND_ADD || $COMMAND_REMOVE || \
-			$COMMAND_EXECUTE || \
-			$COMMAND_PRINT || $COMMAND_LIST
+            $COMMAND_EXECUTE || \
+            $COMMAND_PRINT || $COMMAND_LIST
         then
             die "The help option must be used exclusively"
         fi
@@ -86,20 +86,20 @@ check_cli(){
         die "No arguments are needed. Run: $CMD --help"
     fi
 
-	# All commands are supposed to get at most one argument
-	if $COMMAND_LIST || $OPT_HELP
-	then
-		if [[ ${#COMMAND_ARGS[@]} -ne 0 ]]
-		then
+    # All commands are supposed to get at most one argument
+    if $COMMAND_LIST || $OPT_HELP
+    then
+        if [[ ${#COMMAND_ARGS[@]} -ne 0 ]]
+        then
             die "Too many arguments for the given command. Run: $CMD --help"
-		fi
-	fi
+        fi
+    fi
     if $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_PRINT
     then
-		if [[ ${#COMMAND_ARGS[@]} -ne 1 ]]
-		then
+        if [[ ${#COMMAND_ARGS[@]} -ne 1 ]]
+        then
             die "Only one alias is accepted. Run: $CMD --help"
-		fi
+        fi
     fi
 
     return 0
@@ -137,30 +137,30 @@ function parse_arguments(){
 
     for opt in "$@"
     do
-	case "$opt" in
-	    add|a)
-		COMMAND_ADD=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
-	    remove|r)
-		COMMAND_REMOVE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
-	    execute|e)
-		COMMAND_EXECUTE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
-	    list|l)
-		COMMAND_LIST=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
-	    print|p)
-		COMMAND_PRINT=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+    case "$opt" in
+        add|a)
+        COMMAND_ADD=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        remove|r)
+        COMMAND_REMOVE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        execute|e)
+        COMMAND_EXECUTE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        list|l)
+        COMMAND_LIST=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        print|p)
+        COMMAND_PRINT=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
 
-	    help|h|-h|--help) OPT_HELP=true ; shift ;;
+        help|h|-h|--help) OPT_HELP=true ; shift ;;
 
-	    --) shift ; break ;;
-	    -*) die "Invalid option $1" ;;
-	    *) break ;;
-	esac
+        --) shift ; break ;;
+        -*) die "Invalid option $1" ;;
+        *) break ;;
+    esac
     done
 
     ARGS=()
     for arg in "$@"
     do
-	ARGS+=("$arg")
+    ARGS+=("$arg")
     done
 }
 
@@ -190,13 +190,13 @@ function execute_operation(){
     if $COMMAND_ADD; then
         add_command "${COMMAND_ARGS[0]}"
     elif $COMMAND_REMOVE; then
-		remove_command "${COMMAND_ARGS[0]}"
+        remove_command "${COMMAND_ARGS[0]}"
     elif $COMMAND_EXECUTE; then
-		execute_command "${COMMAND_ARGS[@]}"
+        execute_command "${COMMAND_ARGS[@]}"
     elif $COMMAND_LIST; then
-		list_command
+        list_command
     elif $COMMAND_PRINT; then
-		print_command "${COMMAND_ARGS[0]}"
+        print_command "${COMMAND_ARGS[0]}"
     fi
 
     return 0

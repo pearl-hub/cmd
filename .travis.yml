@@ -1,0 +1,5 @@
+# vim: ft=yaml
+language: bash
+
+script:
+  - ./tests/unit-tests/unit-tests.sh

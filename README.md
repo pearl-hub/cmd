@@ -32,6 +32,14 @@ Write the script below and press Cntrl-c on a new line to save it:
 ls -l ~
 ```
 
+- To add/update a new command/script with variables in it:
+
+```sh
+$ cmd add myls
+Write the script below and press Cntrl-c on a new line to save it:
+ls -l $mydir
+```
+
 - To execute the command/script:
 
 ```sh
@@ -42,7 +50,17 @@ Are you sure to run the script? (N/y)> y
 ...
 ```
 
-- To list of the available commands:
+- To execute the command/script substituting variables:
+
+```sh
+$ cmd execute myls mydir=/home
+ls -l $mydir
+Are you sure to run the script? (N/y)> y
+...
+...
+```
+
+- To list all the available commands:
 
 ```sh
 $ cmd list

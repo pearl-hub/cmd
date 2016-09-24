@@ -94,8 +94,7 @@ check_cli(){
             die "Too many arguments for the given command. Run: $CMD --help"
 		fi
 	fi
-	if $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_EXECUTE || \
-	$COMMAND_PRINT
+    if $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_PRINT
     then
 		if [[ ${#COMMAND_ARGS[@]} -ne 1 ]]
 		then
@@ -193,7 +192,7 @@ function execute_operation(){
     elif $COMMAND_REMOVE; then
 		remove_command "${COMMAND_ARGS[0]}"
     elif $COMMAND_EXECUTE; then
-		execute_command "${COMMAND_ARGS[0]}"
+		execute_command "${COMMAND_ARGS[@]}"
     elif $COMMAND_LIST; then
 		list_command
     elif $COMMAND_PRINT; then

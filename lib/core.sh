@@ -8,7 +8,6 @@
 
 
 CAT=cat
-BASH=bash
 RM=rm
 LS=ls
 
@@ -66,10 +65,10 @@ function remove_command() {
 # Execute an existing command/script.
 #
 # Globals:
-#   BASH (RO)           :  The bash command.
 #   CMD_CONFIG_DIR (RO) :  The directory containing the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to execute.
+#   variables ($2-?)    :  The variables to use in the script.
 # Returns:
 #   0                   : Successful executiong.
 #   1                   : Permission to execute not accepted.
@@ -82,11 +81,16 @@ function remove_command() {
 function execute_command() {
     local alias=$1
     check_not_null $alias
+    shift
+    local variables=$@
     [[ ! -f $CMD_CONFIG_DIR/$alias ]] && \
         die_on_status 3 "The alias does not exist."
     print_command $alias
     ask "Are you sure to run the script?" "N" && \
-            $BASH $CMD_CONFIG_DIR/$alias
+        {
+            eval "$variables"
+            source "$CMD_CONFIG_DIR/$alias"
+        }
 }
 
 #######################################

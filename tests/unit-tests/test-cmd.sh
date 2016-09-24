@@ -117,6 +117,9 @@ function test_cmd_execute(){
 
     assertCommandSuccess cli_wrap e myalias
     assertEquals "$(echo -e "execute_command myalias")" "$(cat $STDOUTF)"
+
+    assertCommandSuccess cli_wrap e myalias var1=abc
+    assertEquals "$(echo -e "execute_command myalias var1=abc")" "$(cat $STDOUTF)"
 }
 
 function test_cmd_list(){
@@ -141,6 +144,9 @@ function test_check_cli(){
     assertCommandFail cli_wrap wrong_arg
     assertCommandFail cli_wrap list wrong_arg
     assertCommandFail cli_wrap -h wrong_arg
+    assertCommandFail cli_wrap p alias1 alias2
+    assertCommandFail cli_wrap r alias1 alias2
+    assertCommandFail cli_wrap a alias1 alias2
 }
 
 source $(dirname $0)/shunit2

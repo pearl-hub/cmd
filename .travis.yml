@@ -1,5 +1,20 @@
 # vim: ft=yaml
 language: bash
+sudo: required
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y zsh
+  - ./tests/integ-tests/install-fish.sh "2.2.0"
+
+install:
+  - curl -sL https://git.io/vV4yE | sh
+  - source ~/.bashrc
+  - echo "PEARL_PACKAGES[test]=\"${PWD}\"" >> ~/.config/pearl/pearl.conf
+  - pearl install test
 
 script:
   - ./tests/unit-tests/unit-tests.sh
+  - bash ./tests/integ-tests/integ-tests.sh $PEARL_ROOT
+  - zsh ./tests/integ-tests/integ-tests.sh $PEARL_ROOT
+  - fish ./tests/integ-tests/integ-tests.fish $PEARL_ROOT

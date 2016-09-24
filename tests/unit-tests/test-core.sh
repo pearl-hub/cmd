@@ -103,6 +103,24 @@ function test_execute_command(){
     assertEquals "$(echo -e "echo executed command\nexecuted command")" "$(cat $STDOUTF)"
 }
 
+function test_execute_command_with_variables(){
+    ask() {
+        return 0
+    }
+    echo "echo executed command \$var1" > $CMD_CONFIG_DIR/myalias
+    assertCommandSuccess execute_command myalias var1=abc
+    assertEquals "$(echo -e "echo executed command \$var1\nexecuted command abc")" "$(cat $STDOUTF)"
+}
+
+function test_execute_command_with_variables_not_assigned(){
+    ask() {
+        return 0
+    }
+    echo "echo executed command \$var1" > $CMD_CONFIG_DIR/myalias
+    assertCommandSuccess execute_command myalias
+    assertEquals "$(echo -e "echo executed command \$var1\nexecuted command")" "$(cat $STDOUTF)"
+}
+
 function test_execute_command_ask_no(){
     ask() {
         return 1

@@ -1,5 +1,5 @@
 #!/bin/bash
-source "$(dirname $0)/utils.sh"
+source "$(dirname $0)/../utils/utils.sh"
 
 pearlSetUp
 cmdSetUp
@@ -149,4 +149,4 @@ function test_check_cli(){
     assertCommandFail cli_wrap a alias1 alias2
 }
 
-source $(dirname $0)/shunit2
+source $(dirname $0)/../utils/shunit2

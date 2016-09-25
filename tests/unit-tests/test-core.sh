@@ -1,5 +1,5 @@
 #!/bin/bash
-source "$(dirname $0)/utils.sh"
+source "$(dirname $0)/../utils/utils.sh"
 
 pearlSetUp
 source $PEARL_ROOT/lib/utils/utils.sh
@@ -134,4 +134,4 @@ function test_execute_command_alias_does_not_exist(){
     assertCommandFailOnStatus 3 execute_command "myalias"
 }
 
-source $(dirname $0)/shunit2
+source $(dirname $0)/../utils/shunit2

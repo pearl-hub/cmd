@@ -15,6 +15,7 @@ install:
 
 script:
   - ./tests/unit-tests/unit-tests.sh
+  - ./tests/checkstyle/checkstyle.sh
   - bash ./tests/integ-tests/integ-tests.sh $PEARL_ROOT
   - zsh ./tests/integ-tests/integ-tests.sh $PEARL_ROOT
   - fish ./tests/integ-tests/integ-tests.fish $PEARL_ROOT

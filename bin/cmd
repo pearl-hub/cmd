@@ -165,8 +165,7 @@ function parse_arguments(){
 }
 
 #######################################
-# Check if the option provided to the command
-# are correct.
+# Execute the specified command.
 #
 # Globals:
 #   COMMAND_ADD (RO,bool)     :  true if the command has been specified.

@@ -82,13 +82,17 @@ function execute_command() {
     local alias=$1
     check_not_null $alias
     shift
-    local variables=$@
     [[ ! -f $CMD_CONFIG_DIR/$alias ]] && \
         die_on_status 3 "The alias does not exist."
     print_command $alias
     ask "Are you sure to run the script?" "N" && \
         {
-            eval "$variables"
+            for var in $@
+            do
+                [[ $var != *"="* ]] && break
+                eval "$var"
+                shift
+            done
             source "$CMD_CONFIG_DIR/$alias"
         }
 }

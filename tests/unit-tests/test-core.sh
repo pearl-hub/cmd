@@ -112,6 +112,15 @@ function test_execute_command_with_variables(){
     assertEquals "$(echo -e "echo executed command \$var1\nexecuted command abc")" "$(cat $STDOUTF)"
 }
 
+function test_execute_command_with_special_variables(){
+    ask() {
+        return 0
+    }
+    echo "echo executed command \$opts \$@" > $CMD_CONFIG_DIR/myalias
+    assertCommandSuccess execute_command myalias opts="super" sonic
+    assertEquals "$(echo -e "echo executed command \$opts \$@\nexecuted command super sonic")" "$(cat $STDOUTF)"
+}
+
 function test_execute_command_with_variables_not_assigned(){
     ask() {
         return 0

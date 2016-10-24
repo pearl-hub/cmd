@@ -52,7 +52,7 @@ Are you sure to run the script? (N/y)> y
 - To execute the command/script substituting variables:
 
 ```sh
-$ cmd execute myls opts="-at" /root
+$ cmd execute myls "opts='-a -lt'" /root
 ls -l $opts $@
 Are you sure to run the script? (N/y)> y
 ...

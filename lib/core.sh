@@ -87,7 +87,7 @@ function execute_command() {
     print_command $alias
     ask "Are you sure to run the script?" "N" && \
         {
-            for var in $@
+            for var in "$@"
             do
                 [[ $var != *"="* ]] && break
                 eval "$var"

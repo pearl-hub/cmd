@@ -35,13 +35,13 @@ usage() {
     echo -e "Usage: $CMD <command> [args]"
     echo
     echo -e "Commands:"
-    echo -e "  a[dd]       alias           Add/Update a command using the editor in"
-    echo -e "                              \$EDITOR variable if exists otherwise it uses cat."
-    echo -e "  r[emove]    alias           Remove the command."
-    echo -e "  e[xecute]   alias           Execute the command."
-    echo -e "  l[ist]                      List all the available commands."
-    echo -e "  p[rint]     alias           Print the command."
-    echo -e "  h[elp], [-h], [--help]      Show this help message."
+    echo -e "  a[dd]       alias                      Add/Update a command using the editor in"
+    echo -e "                                         \$EDITOR variable if exists otherwise it uses cat."
+    echo -e "  r[emove]    alias                      Remove the command."
+    echo -e "  e[xecute]   alias ["var1='val1'"]...   Execute the command."
+    echo -e "  l[ist]                                 List all the available commands."
+    echo -e "  p[rint]     alias                      Print the command."
+    echo -e "  h[elp], [-h], [--help]                 Show this help message."
     echo
     return 0
 }

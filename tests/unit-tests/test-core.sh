@@ -108,8 +108,8 @@ function test_execute_command_with_variables(){
         return 0
     }
     echo "echo executed command \$var1" > $CMD_CONFIG_DIR/myalias
-    assertCommandSuccess execute_command myalias var1=abc
-    assertEquals "$(echo -e "echo executed command \$var1\nexecuted command abc")" "$(cat $STDOUTF)"
+    assertCommandSuccess execute_command myalias "var1='abc -def'"
+    assertEquals "$(echo -e "echo executed command \$var1\nexecuted command abc -def")" "$(cat $STDOUTF)"
 }
 
 function test_execute_command_with_special_variables(){

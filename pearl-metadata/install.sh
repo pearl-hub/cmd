@@ -1,8 +1,12 @@
 
 function post_install(){
-    ln -s "${PEARL_PKGDIR}/bin/cmd" ${PEARL_HOME}/bin
+    link_to_path "${PEARL_PKGDIR}/bin/cmd"
+}
+
+function post_update(){
+    post_install
 }
 
 function pre_remove(){
-    rm -f ${PEARL_HOME}/bin/cmd
+    unlink_from_path "${PEARL_PKGDIR}/bin/cmd"
 }

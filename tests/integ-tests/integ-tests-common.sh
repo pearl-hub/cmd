@@ -1,7 +1,5 @@
 #!/bin/bash
 
-pearl install test
-
 cmd help
 
 export EDITOR="eval echo ls -l >"

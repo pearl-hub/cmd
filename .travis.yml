@@ -9,13 +9,11 @@ before_install:
 
 install:
   - curl -sL https://git.io/vV4yE | sh
-  - source ~/.bashrc
   - echo "PEARL_PACKAGES[test]=\"${PWD}\"" >> ~/.config/pearl/pearl.conf
-  - pearl install test
 
 script:
   - ./tests/unit-tests/unit-tests.sh
   - ./tests/checkstyle/checkstyle.sh
-  - bash ./tests/integ-tests/integ-tests.sh $PEARL_ROOT
-  - zsh ./tests/integ-tests/integ-tests.sh $PEARL_ROOT
-  - fish ./tests/integ-tests/integ-tests.fish $PEARL_ROOT
+  - bash ./tests/integ-tests/integ-tests.sh
+  - zsh ./tests/integ-tests/integ-tests.sh
+  - fish ./tests/integ-tests/integ-tests.fish

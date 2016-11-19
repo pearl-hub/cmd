@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pearl install test
+
 cmd help
 
 export EDITOR="eval echo ls -l >"
@@ -10,3 +12,7 @@ cmd list
 cmd print myalias
 
 echo y | cmd execute myalias
+
+pearl update test
+
+pearl remove test

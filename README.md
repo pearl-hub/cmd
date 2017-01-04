@@ -3,7 +3,7 @@ CMD
 
 |Project Status|Communication|
 |:-----------:|:-----------:|
-|[![Build status](https://api.travis-ci.org/pearl-hub/cmd.png?branch=master)](https://travis-ci.org/pearl-hub/cmd) | [![Join the gitter chat at https://gitter.im/pearl-hub/cmd](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pearl-hub/cmd?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) |
+|[![Build status](https://api.travis-ci.org/pearl-hub/cmd.png?branch=master)](https://travis-ci.org/pearl-hub/cmd) | [![Join the gitter chat at https://gitter.im/pearl-core/pearl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pearl-core/pearl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) |
 
 **Table of Contents**
 - [Description](#description)
@@ -79,6 +79,7 @@ Dependencies
 The main dependencies are the following:
 
 - [Pearl](https://github.com/pearl-core/pearl)
+- [GNU coreutils](https://www.gnu.org/software/coreutils/)
 
 Troubleshooting
 ===============

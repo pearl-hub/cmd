@@ -8,9 +8,13 @@ set -e -o pipefail
 [ -z "$CMD_CONFIG_DIR" ] && { echo "Error: The variable CMD_CONFIG_DIR must be specified in order to run this script."; exit 1; }
 [ -d "$CMD_CONFIG_DIR" ] || { echo "Error: The value in variable CMD_CONFIG_DIR is not a directory."; exit 2; }
 
+source $PEARL_ROOT/lib/utils/osx-compat.sh
+# Update PATH for OSX
+pearl_update_path
+source "${PEARL_ROOT}/lib/utils/utils.sh"
+
 CMD_ROOT="${CMD_ROOT:-$(readlink -f $(dirname $(readlink -f "$0"))/..)}"
 
-source "${PEARL_ROOT}/lib/utils/utils.sh"
 source "${CMD_ROOT}/lib/core.sh"
 
 CMD=cmd

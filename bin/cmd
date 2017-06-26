@@ -2,20 +2,23 @@
 
 set -e -o pipefail
 
-[ -z "$PEARL_ROOT" ] && { echo "Error: The variable PEARL_ROOT must be specified in order to run this script."; exit 1; }
-[ -d "$PEARL_ROOT" ] || { echo "Error: The value in variable PEARL_ROOT is not a directory."; exit 2; }
-
 [ -z "$CMD_CONFIG_DIR" ] && { echo "Error: The variable CMD_CONFIG_DIR must be specified in order to run this script."; exit 1; }
 [ -d "$CMD_CONFIG_DIR" ] || { echo "Error: The value in variable CMD_CONFIG_DIR is not a directory."; exit 2; }
 
-source $PEARL_ROOT/lib/utils/osx-compat.sh
-# Update PATH for OSX
-pearl_update_path
-source "${PEARL_ROOT}/lib/utils/utils.sh"
+# PATH needs to be updated since GNU Coreutils is required in OSX
+# environments. Buava `osx_update_path` cannot be used because in
+# order to load osx-compat.sh file the `readlink` command is
+# required first (circular dependency).
+GNUBIN="/usr/local/opt/coreutils/libexec/gnubin"
+[ -d "$GNUBIN" ] && PATH="$GNUBIN:$PATH"
 
-CMD_ROOT="${CMD_ROOT:-$(readlink -f $(dirname $(readlink -f "$0"))/..)}"
+# Identify the location of the current package
+PKG_ROOT="${PKG_ROOT:-$(readlink -f $(dirname $(readlink -f "$0"))/..)}"
 
-source "${CMD_ROOT}/lib/core.sh"
+# Import buava library if needed during the script logic
+source $PKG_ROOT/buava/lib/utils.sh
+
+source "${PKG_ROOT}/lib/core.sh"
 
 CMD=cmd
 DESCRIPTION="Store the favourite commands and scripts in one place."
@@ -26,7 +29,7 @@ DESCRIPTION="Store the favourite commands and scripts in one place."
 # Globals:
 #   CMD (RO)          :  The name of the program.
 #   DESCRIPTION (RO)  :  The description of the program.
-#   CMD_ROOT (RO)     :  The location of the program.
+#   PKG_ROOT (RO)     :  The location of the program.
 # Arguments:
 #   None
 # Returns:
@@ -35,7 +38,7 @@ DESCRIPTION="Store the favourite commands and scripts in one place."
 #   The usage helper.
 #######################################
 usage() {
-    echo -e "$CMD (v$(cat $CMD_ROOT/VERSION)): $DESCRIPTION"
+    echo -e "$CMD (v$(cat $PKG_ROOT/VERSION)): $DESCRIPTION"
     echo -e "Usage: $CMD <command> [args]"
     echo
     echo -e "Commands:"

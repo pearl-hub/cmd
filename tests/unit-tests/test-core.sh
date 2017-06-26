@@ -2,7 +2,7 @@
 source "$(dirname $0)/../utils/utils.sh"
 
 pearlSetUp
-source $PEARL_ROOT/lib/utils/utils.sh
+source $(dirname $0)/../../buava/lib/utils.sh
 source "$(dirname $0)/../../lib/core.sh"
 
 # Disable the exiterr

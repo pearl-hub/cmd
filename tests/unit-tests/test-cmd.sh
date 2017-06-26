@@ -67,20 +67,6 @@ function test_help(){
     assertEquals 0 $?
 }
 
-function test_cmd_no_pearl_root_defined(){
-    OLD_PEARL_ROOT=$PEARL_ROOT
-    unset PEARL_ROOT
-    assertCommandFailOnStatus 1 source $CMD_LOCATION/bin/cmd -h
-    PEARL_ROOT=$OLD_PEARL_ROOT
-}
-
-function test_cmd_no_pearl_root_directory(){
-    OLD_PEARL_ROOT=$PEARL_ROOT
-    PEARL_ROOT="not-a-directory"
-    assertCommandFailOnStatus 2 source $CMD_LOCATION/bin/cmd -h
-    PEARL_ROOT=$OLD_PEARL_ROOT
-}
-
 function test_cmd_no_cmd_config_defined(){
     OLD_CMD_CONFIG_DIR=$CMD_CONFIG_DIR
     unset CMD_CONFIG_DIR

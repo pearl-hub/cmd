@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-source "$(dirname $0)/../utils/utils.sh"
+PKG_LOCATION="$(dirname $0)/../.."
+source "$PKG_LOCATION/tests/bunit/utils/utils.sh"
+source "$PKG_LOCATION/tests/test-utils/utils.sh"
+source "$PKG_LOCATION/tests/utils/utils.sh"
 
 pearlSetUp
-source $(dirname $0)/../../buava/lib/utils.sh
-source "$(dirname $0)/../../lib/core.sh"
+source $PKG_LOCATION/buava/lib/utils.sh
+source "$PKG_LOCATION/lib/core.sh"
 
 # Disable the exiterr
 set +e
@@ -143,4 +146,4 @@ function test_execute_command_alias_does_not_exist(){
     assertCommandFailOnStatus 3 execute_command "myalias"
 }
 
-source $(dirname $0)/../utils/shunit2
+source $PKG_LOCATION/tests/bunit/utils/shunit2

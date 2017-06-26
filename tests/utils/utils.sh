@@ -4,7 +4,6 @@ OLD_PWD=$PWD
 
 function pearlSetUp() {
     export PEARL_ROOT=$(TMPDIR=/tmp mktemp -d -t pearl-test-root.XXXXXXX)
-    git clone --quiet https://github.com/pearl-core/pearl.git $PEARL_ROOT
 }
 
 function pearlTearDown(){
@@ -14,13 +13,13 @@ function pearlTearDown(){
 
 function cmdSetUp(){
     export CMD_CONFIG_DIR=$(TMPDIR=/tmp mktemp -d -t cmd-config.XXXXXXX)
-    export CMD_ROOT=$(dirname $0)/../../
+    export PKG_ROOT=$(dirname $0)/../../
 }
 
 function cmdTearDown(){
     cd $OLD_PWD
     rm -rf $CMD_CONFIG_DIR
-    unset CMD_CONFIG_DIR CMD_ROOT
+    unset CMD_CONFIG_DIR PKG_ROOT
 }
 
 function setUpUnitTests(){

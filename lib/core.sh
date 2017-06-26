@@ -2,7 +2,7 @@
 # handling the cmd core.
 #
 # Dependencies:
-# - $PEARL_ROOT/lib/utils/utils.sh
+# - [buava] $PKG_ROOT/buava/lib/utils.sh
 #
 # vim: ft=sh
 

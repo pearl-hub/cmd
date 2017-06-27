@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-source "$(dirname $0)/../utils/utils.sh"
+PKG_LOCATION="$(dirname $0)/../.."
+source "$PKG_LOCATION/tests/bunit/utils/utils.sh"
+source "$PKG_LOCATION/tests/test-utils/utils.sh"
+source "$PKG_LOCATION/tests/utils/utils.sh"
 
 pearlSetUp
 cmdSetUp
-CMD_LOCATION="$(dirname $0)/../.."
-source $CMD_LOCATION/bin/cmd -h &> /dev/null
+source $PKG_LOCATION/bin/cmd -h &> /dev/null
 
 # Disable the exiterr
 set +e
@@ -70,14 +72,14 @@ function test_help(){
 function test_cmd_no_cmd_config_defined(){
     OLD_CMD_CONFIG_DIR=$CMD_CONFIG_DIR
     unset CMD_CONFIG_DIR
-    assertCommandFailOnStatus 1 source $CMD_LOCATION/bin/cmd -h
+    assertCommandFailOnStatus 1 source $PKG_LOCATION/bin/cmd -h
     CMD_CONFIG_DIR=$OLD_CMD_CONFIG_DIR
 }
 
 function test_cmd_no_cmd_config_directory(){
     OLD_CMD_CONFIG_DIR=$CMD_CONFIG_DIR
     CMD_CONFIG_DIR="not-a-directory"
-    assertCommandFailOnStatus 2 source $CMD_LOCATION/bin/cmd -h
+    assertCommandFailOnStatus 2 source $PKG_LOCATION/bin/cmd -h
     CMD_CONFIG_DIR=$OLD_CMD_CONFIG_DIR
 }
 
@@ -135,4 +137,4 @@ function test_check_cli(){
     assertCommandFail cli_wrap a alias1 alias2
 }
 
-source $(dirname $0)/../utils/shunit2
+source $PKG_LOCATION/tests/bunit/utils/shunit2

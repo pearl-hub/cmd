@@ -19,8 +19,8 @@ install:
   - echo "PEARL_PACKAGES[test]=\"${PWD}\"" >> ~/.config/pearl/pearl.conf
 
 script:
-  - ./tests/unit-tests/unit-tests.sh
-  - ./tests/checkstyle/checkstyle.sh
+  - ./tests/bunit/bin/checkstyle.sh ./bin/ ./lib/
+  - ./tests/bunit/bin/unit-tests.sh ./tests/unit-tests
   - ./tests/integ-tests/integ-tests.sh
   - zsh ./tests/integ-tests/integ-tests.sh
   - fish ./tests/integ-tests/integ-tests.fish

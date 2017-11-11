@@ -22,5 +22,5 @@ script:
   - ./tests/bunit/bin/checkstyle.sh ./bin/ ./lib/
   - ./tests/bunit/bin/unit-tests.sh ./tests/unit-tests
   - ./tests/integ-tests/integ-tests.sh
-  - zsh ./tests/integ-tests/integ-tests.sh
+  - ./tests/integ-tests/integ-tests.zsh
   - fish ./tests/integ-tests/integ-tests.fish

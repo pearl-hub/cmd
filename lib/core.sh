@@ -10,6 +10,7 @@
 CAT=cat
 RM=rm
 LS=ls
+MKDIR=mkdir
 
 #######################################
 # Add/Update a new command/script.
@@ -27,14 +28,15 @@ LS=ls
 #   The message in case of errors.
 #######################################
 function add_command() {
-    local alias=$1
+    local alias="$1"
     check_not_null $alias
     local file=$CMD_CONFIG_DIR/$alias
-    if [ -z "$EDITOR" ]; then
+    $MKDIR -p "$(dirname "$file")"
+    if [[ -z "$EDITOR" ]]; then
         info "Write the script below and press Cntrl-c on a new line to save it:"
-        $CAT > $file
+        $CAT > "$file"
     else
-        $EDITOR $file
+        $EDITOR "$file"
     fi
 }
 
@@ -54,11 +56,12 @@ function add_command() {
 #   The message in case of errors.
 #######################################
 function remove_command() {
-    local alias=$1
+    local alias="$1"
     check_not_null $alias
-    [[ ! -f $CMD_CONFIG_DIR/$alias ]] && \
+    [[ ! -e $CMD_CONFIG_DIR/$alias ]] && \
         die_on_status 3 "The alias does not exist."
-    $RM $CMD_CONFIG_DIR/$alias
+    cd "$CMD_CONFIG_DIR"
+    $RM -r "$alias"
 }
 
 #######################################
@@ -79,7 +82,7 @@ function remove_command() {
 #   The message in case of errors.
 #######################################
 function execute_command() {
-    local alias=$1
+    local alias="$1"
     check_not_null $alias
     shift
     [[ ! -f $CMD_CONFIG_DIR/$alias ]] && \
@@ -114,11 +117,11 @@ function execute_command() {
 #   The message in case of errors.
 #######################################
 function print_command() {
-    local alias=$1
+    local alias="$1"
     check_not_null $alias
     [[ ! -f $CMD_CONFIG_DIR/$alias ]] && \
         die_on_status 3 "The alias does not exist."
-    $CAT $CMD_CONFIG_DIR/$alias
+    $CAT "$CMD_CONFIG_DIR/$alias"
 }
 
 #######################################
@@ -135,5 +138,6 @@ function print_command() {
 #   The list of commands/scripts.
 #######################################
 function list_command() {
-    $LS $CMD_CONFIG_DIR
+    cd "$CMD_CONFIG_DIR"
+    $LS -R
 }

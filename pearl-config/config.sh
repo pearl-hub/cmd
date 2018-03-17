@@ -1,0 +1,6 @@
+export CMD_USER_DIR="$PEARL_PKGVARDIR"
+
+if [[ $CMD_PATH != *"$PEARL_PKGVARDIR"* ]]
+then
+    export CMD_PATH="$PEARL_PKGVARDIR:$CMD_PATH"
+fi

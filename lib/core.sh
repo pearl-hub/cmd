@@ -18,7 +18,7 @@ MKDIR=mkdir
 # Globals:
 #   EDITOR (RO?)        :  The editor to use for adding/updating.
 #   CAT (RO)            :  The cat command to use as fallback.
-#   CMD_CONFIG_DIR (RO) :  The directory containing the commands/scripts.
+#   CMD_USER_DIR (RO)   :  The directory containing the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to add/update.
 # Returns:
@@ -30,7 +30,7 @@ MKDIR=mkdir
 function add_command() {
     local alias="$1"
     check_not_null $alias
-    local file=$CMD_CONFIG_DIR/$alias
+    local file=$CMD_USER_DIR/$alias
     $MKDIR -p "$(dirname "$file")"
     if [[ -z "$EDITOR" ]]; then
         info "Write the script below and press Cntrl-c on a new line to save it:"
@@ -45,7 +45,7 @@ function add_command() {
 #
 # Globals:
 #   RM (RO)             :  The rm command.
-#   CMD_CONFIG_DIR (RO) :  The directory containing the commands/scripts.
+#   CMD_USER_DIR (RO)   :  The directory containing the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to remove.
 # Returns:
@@ -58,9 +58,9 @@ function add_command() {
 function remove_command() {
     local alias="$1"
     check_not_null $alias
-    [[ ! -e $CMD_CONFIG_DIR/$alias ]] && \
+    [[ ! -e $CMD_USER_DIR/$alias ]] && \
         die_on_status 3 "The alias does not exist."
-    cd "$CMD_CONFIG_DIR"
+    cd "$CMD_USER_DIR"
     $RM -r "$alias"
 }
 
@@ -68,7 +68,8 @@ function remove_command() {
 # Execute an existing command/script.
 #
 # Globals:
-#   CMD_CONFIG_DIR (RO) :  The directory containing the commands/scripts.
+#   CMD_PATH (RO)       :  The directories (colon separated) containing
+#                          the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to execute.
 #   variables ($2-?)    :  The variables to use in the script.
@@ -85,8 +86,18 @@ function execute_command() {
     local alias="$1"
     check_not_null $alias
     shift
-    [[ ! -f $CMD_CONFIG_DIR/$alias ]] && \
+
+    local cmd_file=""
+    local IFS=$':'
+    for cmd_dir in $CMD_PATH
+    do
+        [[ -f $cmd_dir/$alias ]] && cmd_file="$cmd_dir/$alias"
+    done
+    unset IFS
+
+    [[ -z $cmd_file ]] && \
         die_on_status 3 "The alias does not exist."
+
     print_command $alias
     ask "Are you sure to run the script?" "N" && \
         {
@@ -96,7 +107,8 @@ function execute_command() {
                 eval "$var"
                 shift
             done
-            source "$CMD_CONFIG_DIR/$alias"
+            CMD_SCRIPT_FILE=$cmd_file
+            source "$cmd_file"
         }
 }
 
@@ -105,7 +117,8 @@ function execute_command() {
 #
 # Globals:
 #   CAT (RO)            :  The cat command.
-#   CMD_CONFIG_DIR (RO) :  The directory containing the commands/scripts.
+#   CMD_PATH (RO)       :  The directories (colon separated) containing
+#                          the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to print.
 # Returns:
@@ -119,9 +132,19 @@ function execute_command() {
 function print_command() {
     local alias="$1"
     check_not_null $alias
-    [[ ! -f $CMD_CONFIG_DIR/$alias ]] && \
+
+    local cmd_file=""
+    local IFS=$':'
+    for cmd_dir in $CMD_PATH
+    do
+        [[ -f $cmd_dir/$alias ]] && cmd_file="$cmd_dir/$alias"
+    done
+    unset IFS
+
+    [[ -z $cmd_file ]] && \
         die_on_status 3 "The alias does not exist."
-    $CAT "$CMD_CONFIG_DIR/$alias"
+
+    $CAT "$cmd_file"
 }
 
 #######################################
@@ -129,15 +152,21 @@ function print_command() {
 #
 # Globals:
 #   LS (RO)            :  The ls command.
-#   CMD_CONFIG_DIR (RO) :  The directory containing the commands/scripts.
+#   CMD_PATH (RO)      :  The directories (colon separated) containing
+#                          the commands/scripts.
 # Arguments:
 #   None
 # Returns:
-#   0                   : Successful listing.
+#   0                  : Successful listing.
 # Output:
 #   The list of commands/scripts.
 #######################################
 function list_command() {
-    cd "$CMD_CONFIG_DIR"
-    $LS -R
+    local IFS=$':'
+    for cmd_dir in $CMD_PATH
+    do
+        cd "$cmd_dir"
+        $LS -R
+    done
+    unset IFS
 }

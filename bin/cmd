@@ -2,8 +2,9 @@
 
 set -e -o pipefail
 
-[ -z "$CMD_CONFIG_DIR" ] && { echo "Error: The variable CMD_CONFIG_DIR must be specified in order to run this script."; exit 1; }
-[ -d "$CMD_CONFIG_DIR" ] || { echo "Error: The value in variable CMD_CONFIG_DIR is not a directory."; exit 2; }
+[ -z "$CMD_USER_DIR" ] && { echo "Error: The variable CMD_USER_DIR must be specified in order to run this script."; exit 1; }
+[ -d "$CMD_USER_DIR" ] || { echo "Error: The value in variable CMD_USER_DIR is not a directory."; exit 2; }
+[ -z "$CMD_PATH" ] && { echo "Error: The variable CMD_PATH must be specified in order to run this script."; exit 3; }
 
 # PATH needs to be updated since GNU Coreutils is required in OSX
 # environments. Buava `osx_update_path` cannot be used because in

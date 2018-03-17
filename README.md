@@ -66,6 +66,16 @@ $ cmd list
 myls
 ```
 
+Attach existing commands
+------------------------
+If there are already existing commands in a given directory, you can use the
+variable environment `CMD_PATH` to include such commands into `cmd` program:
+
+```sh
+export CMD_PATH="/mydirectory/to/new/commands:$CMD_PATH"
+cmd list
+```
+
 Installation
 ============
 This package needs to be installed via [Pearl](https://github.com/pearl-core/pearl) system.
@@ -73,6 +83,13 @@ This package needs to be installed via [Pearl](https://github.com/pearl-core/pea
 ```sh
 pearl install cmd
 ```
+
+Optionally, you can also install the package `cmd-extra` containing a collection of standard commands:
+
+```sh
+pearl install cmd-extra
+```
+
 
 Dependencies
 ------------

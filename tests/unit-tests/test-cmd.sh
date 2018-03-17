@@ -70,17 +70,24 @@ function test_help(){
 }
 
 function test_cmd_no_cmd_config_defined(){
-    OLD_CMD_CONFIG_DIR=$CMD_CONFIG_DIR
-    unset CMD_CONFIG_DIR
+    OLD_CMD_USER_DIR=$CMD_USER_DIR
+    unset CMD_USER_DIR
     assertCommandFailOnStatus 1 source $PKG_LOCATION/bin/cmd -h
-    CMD_CONFIG_DIR=$OLD_CMD_CONFIG_DIR
+    CMD_USER_DIR=$OLD_CMD_USER_DIR
 }
 
 function test_cmd_no_cmd_config_directory(){
-    OLD_CMD_CONFIG_DIR=$CMD_CONFIG_DIR
-    CMD_CONFIG_DIR="not-a-directory"
+    OLD_CMD_USER_DIR=$CMD_USER_DIR
+    CMD_USER_DIR="not-a-directory"
     assertCommandFailOnStatus 2 source $PKG_LOCATION/bin/cmd -h
-    CMD_CONFIG_DIR=$OLD_CMD_CONFIG_DIR
+    CMD_USER_DIR=$OLD_CMD_USER_DIR
+}
+
+function test_cmd_no_cmd_path_defined(){
+    OLD_CMD_PATH=$CMD_PATH
+    unset CMD_PATH
+    assertCommandFailOnStatus 3 source $PKG_LOCATION/bin/cmd -h
+    CMD_PATH=$OLD_CMD_PATH
 }
 
 function test_cmd_add(){

@@ -165,8 +165,11 @@ function list_command() {
     local IFS=$':'
     for cmd_dir in $CMD_PATH
     do
-        cd "$cmd_dir"
-        $LS -R
+        if [[ -d $cmd_dir ]]
+        then
+            cd "$cmd_dir"
+            $LS -R
+        fi
     done
     unset IFS
 }

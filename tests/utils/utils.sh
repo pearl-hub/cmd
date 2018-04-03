@@ -1,12 +1,19 @@
-unset CMD_USER_DIR
+unset CMD_VARDIR
 
 function cmdSetUp(){
-    export CMD_USER_DIR=$(TMPDIR=/tmp mktemp -d -t cmd-config.XXXXXXX)
+    export CMD_VARDIR=$(TMPDIR=/tmp mktemp -d -t cmd-config.XXXXXXX)
     export PKG_ROOT=$(dirname $0)/../../
-    export CMD_PATH="$CMD_USER_DIR"
+    # Create a second fake path in cmds2
+    export CMD_PATH="$CMD_VARDIR/cmds:$CMD_VARDIR/cmds2"
+    mkdir -p $CMD_VARDIR/cmds
+    mkdir -p $CMD_VARDIR/cmds2/myns2
+    # Add existing commands in cmds
+    echo "echo mycommand" > $CMD_VARDIR/cmds2/myns2/myalias2
+    chmod +x $CMD_VARDIR/cmds2/myns2/myalias2
+    mkdir -p $CMD_VARDIR/bin
 }
 
 function cmdTearDown(){
-    rm -rf $CMD_USER_DIR
-    unset CMD_USER_DIR PKG_ROOT CMD_PATH
+    rm -rf $CMD_VARDIR
+    unset CMD_VARDIR PKG_ROOT CMD_PATH
 }

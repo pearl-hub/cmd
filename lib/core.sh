@@ -7,10 +7,13 @@
 # vim: ft=sh
 
 
+BASENAME=basename
 CAT=cat
-RM=rm
+CHMOD=chmod
 LS=ls
+LN=ln
 MKDIR=mkdir
+RM=rm
 
 #######################################
 # Add/Update a new command/script.
@@ -18,7 +21,7 @@ MKDIR=mkdir
 # Globals:
 #   EDITOR (RO?)        :  The editor to use for adding/updating.
 #   CAT (RO)            :  The cat command to use as fallback.
-#   CMD_USER_DIR (RO)   :  The directory containing the commands/scripts.
+#   CMD_VARDIR (RO)     :  The directory containing the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to add/update.
 # Returns:
@@ -30,7 +33,7 @@ MKDIR=mkdir
 function add_command() {
     local alias="$1"
     check_not_null $alias
-    local file=$CMD_USER_DIR/$alias
+    local file="$CMD_VARDIR/cmds/$alias"
     $MKDIR -p "$(dirname "$file")"
     if [[ -z "$EDITOR" ]]; then
         info "Write the script below and press Cntrl-c on a new line to save it:"
@@ -38,6 +41,10 @@ function add_command() {
     else
         $EDITOR "$file"
     fi
+
+    $CHMOD +x $file
+    filename=$($BASENAME "$file")
+    link_to "$file" "$CMD_VARDIR/bin/$filename"
 }
 
 #######################################
@@ -45,7 +52,7 @@ function add_command() {
 #
 # Globals:
 #   RM (RO)             :  The rm command.
-#   CMD_USER_DIR (RO)   :  The directory containing the commands/scripts.
+#   CMD_VARDIR (RO)     :  The directory containing the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to remove.
 # Returns:
@@ -58,9 +65,16 @@ function add_command() {
 function remove_command() {
     local alias="$1"
     check_not_null $alias
-    [[ ! -e $CMD_USER_DIR/$alias ]] && \
+
+    [[ ! -e $CMD_VARDIR/cmds/$alias ]] && \
         die_on_status 3 "The alias does not exist."
-    cd "$CMD_USER_DIR"
+
+    filename=$($BASENAME "$alias")
+    bin_file="$CMD_VARDIR/bin/$filename"
+    cmds_file="$CMD_VARDIR/cmds/$alias"
+    unlink_from "$cmds_file" "$bin_file"
+
+    cd "$CMD_VARDIR/cmds"
     $RM -r "$alias"
 }
 
@@ -104,11 +118,11 @@ function execute_command() {
             for var in "$@"
             do
                 [[ $var != *"="* ]] && break
-                eval "$var"
+                eval "export $var"
                 shift
             done
             CMD_SCRIPT_FILE=$cmd_file
-            source "$cmd_file"
+            $cmd_file "$@"
         }
 }
 

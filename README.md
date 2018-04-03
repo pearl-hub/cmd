@@ -39,6 +39,17 @@ Write the script below and press Cntrl-c on a new line to save it:
 ls -l $opts $@
 ```
 
+- To add a new script in different language add a shebang into it:
+
+```sh
+$ cmd add myls
+Write the script below and press Cntrl-c on a new line to save it:
+#!/usr/bin/env python
+import os
+...
+...
+```
+
 - To execute the command/script:
 
 ```sh
@@ -47,6 +58,12 @@ ls -l ~
 Are you sure to run the script? (N/y)> y
 ...
 ...
+```
+
+- Alternatively, the command is visible in PATH variable and can be directly executed:
+
+```sh
+myls
 ```
 
 - To execute the command/script substituting variables:

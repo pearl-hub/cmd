@@ -25,7 +25,3 @@ cmd print myalias2
 echo y | cmd execute myalias2
 
 rm -rf $HOME/cmds
-
-pearl update test
-
-pearl remove test

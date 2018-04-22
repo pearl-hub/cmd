@@ -64,8 +64,8 @@ function test_add_command_with_namespace(){
     CAT="echo this is my command"
     assertCommandSuccess add_command "myns/myalias"
     assertEquals "this is my command" "$(cat $CMD_VARDIR/cmds/myns/myalias)"
-    assertEquals "this is my command" "$(cat $CMD_VARDIR/bin/myalias)"
-    assertTrue "File is not executable" "[[ -x $CMD_VARDIR/bin/myalias ]]"
+    assertEquals "this is my command" "$(cat $CMD_VARDIR/bin/myns-myalias)"
+    assertTrue "File is not executable" "[[ -x $CMD_VARDIR/bin/myns-myalias ]]"
     EDITOR=$OLD_EDITOR
     CAT=$OLD_CAT
 }

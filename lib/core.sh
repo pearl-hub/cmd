@@ -42,7 +42,7 @@ function add_command() {
     fi
 
     $CHMOD +x $file
-    filename=${file/*\//}
+    filename=${alias//\//-}
     link_to "$file" "$CMD_VARDIR/bin/$filename"
 }
 
@@ -68,7 +68,7 @@ function remove_command() {
     [[ ! -e $CMD_VARDIR/cmds/$alias ]] && \
         die_on_status 3 "The alias does not exist."
 
-    filename=${alias/*\//}
+    filename=${alias//\//-}
     bin_file="$CMD_VARDIR/bin/$filename"
     cmds_file="$CMD_VARDIR/cmds/$alias"
     unlink_from "$cmds_file" "$bin_file"

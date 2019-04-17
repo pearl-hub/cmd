@@ -4,6 +4,8 @@ function post_install(){
 
     mkdir -p ${PEARL_PKGVARDIR}/bin
     mkdir -p ${PEARL_PKGVARDIR}/cmds
+
+    return 0
 }
 
 function post_update(){
@@ -12,4 +14,5 @@ function post_update(){
 
 function pre_remove(){
     unlink_from_path "${PEARL_PKGDIR}/bin/cmd"
+    return 0
 }

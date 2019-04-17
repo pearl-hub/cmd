@@ -50,8 +50,20 @@ function list_command(){
     echo "list_command $@"
 }
 
-function print_command(){
-    echo "print_command $@"
+function show_command(){
+    echo "show_command $@"
+}
+
+function include_command(){
+    echo "include_command $@"
+}
+
+function exclude_command(){
+    echo "exclude_command $@"
+}
+
+function paths_command(){
+    echo "paths_command $@"
 }
 
 function test_help(){
@@ -81,13 +93,6 @@ function test_cmd_no_cmd_config_directory(){
     CMD_VARDIR="not-a-directory"
     assertCommandFailOnStatus 2 source $PKG_LOCATION/bin/cmd -h
     CMD_VARDIR=$OLD_CMD_VARDIR
-}
-
-function test_cmd_no_cmd_path_defined(){
-    OLD_CMD_PATH=$CMD_PATH
-    unset CMD_PATH
-    assertCommandFailOnStatus 3 source $PKG_LOCATION/bin/cmd -h
-    CMD_PATH=$OLD_CMD_PATH
 }
 
 function test_cmd_add(){
@@ -125,12 +130,36 @@ function test_cmd_list(){
     assertEquals "$(echo -e "list_command ")" "$(cat $STDOUTF)"
 }
 
-function test_cmd_print(){
-    assertCommandSuccess cli_wrap print myalias
-    assertEquals "$(echo -e "print_command myalias")" "$(cat $STDOUTF)"
+function test_cmd_show(){
+    assertCommandSuccess cli_wrap show myalias
+    assertEquals "$(echo -e "show_command myalias")" "$(cat $STDOUTF)"
 
-    assertCommandSuccess cli_wrap p myalias
-    assertEquals "$(echo -e "print_command myalias")" "$(cat $STDOUTF)"
+    assertCommandSuccess cli_wrap s myalias
+    assertEquals "$(echo -e "show_command myalias")" "$(cat $STDOUTF)"
+}
+
+function test_cmd_include(){
+    assertCommandSuccess cli_wrap include mydir
+    assertEquals "$(echo -e "include_command mydir")" "$(cat $STDOUTF)"
+
+    assertCommandSuccess cli_wrap inc mydir
+    assertEquals "$(echo -e "include_command mydir")" "$(cat $STDOUTF)"
+}
+
+function test_cmd_exclude(){
+    assertCommandSuccess cli_wrap exclude mydir
+    assertEquals "$(echo -e "exclude_command mydir")" "$(cat $STDOUTF)"
+
+    assertCommandSuccess cli_wrap exc mydir
+    assertEquals "$(echo -e "exclude_command mydir")" "$(cat $STDOUTF)"
+}
+
+function test_cmd_paths(){
+    assertCommandSuccess cli_wrap paths
+    assertEquals "$(echo -e "paths_command ")" "$(cat $STDOUTF)"
+
+    assertCommandSuccess cli_wrap p
+    assertEquals "$(echo -e "paths_command ")" "$(cat $STDOUTF)"
 }
 
 function test_check_cli(){
@@ -140,6 +169,7 @@ function test_check_cli(){
     assertCommandFail cli_wrap list wrong_arg
     assertCommandFail cli_wrap -h wrong_arg
     assertCommandFail cli_wrap p alias1 alias2
+    assertCommandFail cli_wrap s alias1 alias2
     assertCommandFail cli_wrap r alias1 alias2
     assertCommandFail cli_wrap a alias1 alias2
 }

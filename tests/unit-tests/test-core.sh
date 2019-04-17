@@ -6,7 +6,6 @@ source "$PKG_LOCATION/tests/utils/utils.sh"
 
 pearlSetUp
 source $PKG_LOCATION/buava/lib/utils.sh
-source "$PKG_LOCATION/lib/core.sh"
 
 # Disable the exiterr
 set +e
@@ -21,6 +20,7 @@ function oneTimeTearDown(){
 
 function setUp(){
     cmdSetUp
+    source "$PKG_LOCATION/lib/core.sh"
 }
 
 function tearDown(){
@@ -101,25 +101,131 @@ function test_remove_command_alias_does_not_exist(){
     assertCommandFailOnStatus 3 remove_command "myalias"
 }
 
-function test_print_command_null_alias(){
-    assertCommandFailOnStatus 11 print_command
+function test_show_command_null_alias(){
+    assertCommandFailOnStatus 11 show_command
 }
 
-function test_print_command(){
+function test_show_command(){
     echo "mycommand" > $CMD_VARDIR/cmds/myalias
-    assertCommandSuccess print_command "myalias"
+    assertCommandSuccess show_command "myalias"
     assertEquals "mycommand" "$(cat $STDOUTF)"
 }
 
-function test_print_command_with_namespace(){
+function test_show_command_with_namespace(){
     mkdir -p $CMD_VARDIR/cmds/myns
     echo "mycommand" > $CMD_VARDIR/cmds/myns/myalias
-    assertCommandSuccess print_command "myns/myalias"
+    assertCommandSuccess show_command "myns/myalias"
     assertEquals "mycommand" "$(cat $STDOUTF)"
 }
 
-function test_print_command_alias_does_not_exist(){
-    assertCommandFailOnStatus 3 print_command "myalias"
+function test_show_command_alias_does_not_exist(){
+    assertCommandFailOnStatus 3 show_command "myalias"
+}
+
+function test_include_command_null_alias(){
+    assertCommandFailOnStatus 11 include_command
+}
+
+function test_include_command_not_existing_directory(){
+    assertCommandFailOnStatus 110 include_command "not-a-directory"
+}
+
+function test_include_command_empty_directory(){
+    mkdir -p $CMD_VARDIR/cmds3
+    assertCommandSuccess include_command $CMD_VARDIR/cmds3
+    assertFalse "Bin files should not exist" "[[ "$(ls -A $CMD_VARDIR/bin/)" ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds3\n$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_include_command_one_script(){
+    mkdir -p $CMD_VARDIR/cmds3
+    touch $CMD_VARDIR/cmds3/one-script
+    chmod +x $CMD_VARDIR/cmds3/one-script
+    assertCommandSuccess include_command $CMD_VARDIR/cmds3
+
+    assertTrue "File does not exist" "[[ -e $CMD_VARDIR/bin/one-script ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds3\n$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_include_command_one_nested_script(){
+    mkdir -p $CMD_VARDIR/cmds3/myns
+    touch $CMD_VARDIR/cmds3/myns/one-script
+    chmod +x $CMD_VARDIR/cmds3/myns/one-script
+    assertCommandSuccess include_command $CMD_VARDIR/cmds3
+
+    assertTrue "File does not exist" "[[ -e $CMD_VARDIR/bin/myns-one-script ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds3\n$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_include_command_one_multiple_nested_script(){
+    mkdir -p $CMD_VARDIR/cmds3/myns/myns2
+    touch $CMD_VARDIR/cmds3/myns/myns2/one-script
+    chmod +x $CMD_VARDIR/cmds3/myns/myns2/one-script
+    assertCommandSuccess include_command $CMD_VARDIR/cmds3
+
+    assertFalse "Bin files should not exist" "[[ "$(ls -A $CMD_VARDIR/bin/)" ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds3\n$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_exclude_command_null_alias(){
+    assertCommandFailOnStatus 11 exclude_command
+}
+
+function test_exclude_command_not_existing_directory(){
+    assertCommandFailOnStatus 110 exclude_command "not-a-directory"
+}
+
+function test_exclude_command_empty_directory(){
+    mkdir -p $CMD_VARDIR/cmds3
+    echo "$CMD_VARDIR/cmds3" >> $CMD_VARDIR/cmds_path
+
+    assertCommandSuccess exclude_command $CMD_VARDIR/cmds3
+
+    assertFalse "Bin files should not exist" "[[ "$(ls -A $CMD_VARDIR/bin/)" ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_exclude_command_one_script(){
+    mkdir -p $CMD_VARDIR/cmds3
+    echo "$CMD_VARDIR/cmds3" >> $CMD_VARDIR/cmds_path
+    touch $CMD_VARDIR/cmds3/one-script
+    chmod +x $CMD_VARDIR/cmds3/one-script
+    ln -s $CMD_VARDIR/cmds3/one-script $CMD_VARDIR/bin/one-script
+
+    assertCommandSuccess exclude_command $CMD_VARDIR/cmds3
+
+    assertFalse "File exists" "[[ -e $CMD_VARDIR/bin/one-script ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_exclude_command_one_nested_script(){
+    mkdir -p $CMD_VARDIR/cmds3/myns
+    echo "$CMD_VARDIR/cmds3" >> $CMD_VARDIR/cmds_path
+    touch $CMD_VARDIR/cmds3/myns/one-script
+    chmod +x $CMD_VARDIR/cmds3/myns/one-script
+    ln -s $CMD_VARDIR/cmds3/myns/one-script $CMD_VARDIR/bin/myns-one-script
+
+    assertCommandSuccess exclude_command $CMD_VARDIR/cmds3
+
+    assertFalse "File exists" "[[ -e $CMD_VARDIR/bin/myns-one-script ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_exclude_command_one_multiple_nested_script(){
+    mkdir -p $CMD_VARDIR/cmds3/myns/myns2
+    echo "$CMD_VARDIR/cmds3" >> $CMD_VARDIR/cmds_path
+    touch $CMD_VARDIR/cmds3/myns/myns2/one-script
+    chmod +x $CMD_VARDIR/cmds3/myns/myns2/one-script
+
+    assertCommandSuccess exclude_command $CMD_VARDIR/cmds3
+
+    assertFalse "Bin files should not exist" "[[ "$(ls -A $CMD_VARDIR/bin/)" ]]"
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $CMD_VARDIR/cmds_path)"
+}
+
+function test_paths_command(){
+    assertCommandSuccess paths_command
+    assertEquals "$(echo -e "$CMD_VARDIR/cmds\n$CMD_VARDIR/cmds2")" "$(cat $STDOUTF)"
 }
 
 function test_list_command(){

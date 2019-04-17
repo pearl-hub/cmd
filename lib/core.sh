@@ -14,6 +14,8 @@ LN=ln
 MKDIR=mkdir
 RM=rm
 
+apply "${CMD_VARDIR}/cmds" "${CMD_VARDIR}/cmds_path"
+
 #######################################
 # Add/Update a new command/script.
 #
@@ -81,8 +83,7 @@ function remove_command() {
 # Execute an existing command/script.
 #
 # Globals:
-#   CMD_PATH (RO)       :  The directories (colon separated) containing
-#                          the commands/scripts.
+#   CMD_VARDIR (RO)     : The directory containing the commands/scripts.
 # Arguments:
 #   alias ($1)          :  The command alias to execute.
 #   variables ($2-?)    :  The variables to use in the script.
@@ -101,17 +102,14 @@ function execute_command() {
     shift
 
     local cmd_file=""
-    local IFS=$':'
-    for cmd_dir in $CMD_PATH
-    do
+    while read cmd_dir; do
         [[ -f $cmd_dir/$alias ]] && cmd_file="$cmd_dir/$alias"
-    done
-    unset IFS
+    done < $CMD_VARDIR/cmds_path
 
     [[ -z $cmd_file ]] && \
         die_on_status 3 "The alias does not exist."
 
-    print_command $alias
+    show_command $alias
     ask "Are you sure to run the script?" "N" && \
         {
             for var in "$@"
@@ -125,33 +123,123 @@ function execute_command() {
 }
 
 #######################################
-# Print an existing command/script.
+# Include all the command from the given directory.
+# All the scripts should be executable and in either the same level of the
+# given directory or in a nested directory. This function will not look for
+# scripts that are in multiple nested directories, only one level is allowed.
+#
+# Globals:
+#   PWD (RO)            : The pwd.
+#   CMD_VARDIR (RO)     : The directory containing the commands/scripts.
+# Arguments:
+#   directory ($1)      : The directory containing the command/scripts.
+# Returns:
+#   0                   : Successful execution.
+#   110                 : The directory does not exist.
+#   $NULL_EXCEPTION     : Null directory.
+# Output:
+#   The message in case of errors.
+#######################################
+function include_command() {
+    local directory="$1"
+    check_not_null $directory
+    local full_path=$(readlink -f "$directory")
+
+    [[ -d $full_path ]] || die_on_status 110 "$directory: no such directory"
+
+    local old_pwd="${PWD}"
+    cd "$directory"
+    for alias in * */*
+    do
+        if [[ -x $alias && -f $alias ]]
+        then
+            filename="${alias//\//-}"
+            link_to "$full_path/$alias" "$CMD_VARDIR/bin/$filename"
+        fi
+    done
+    cd "${old_pwd}"
+
+    apply "$full_path" $CMD_VARDIR/cmds_path
+}
+
+#######################################
+# Exclude all the command from the given directory
+#
+# Globals:
+#   PWD (RO)            : The pwd.
+#   CMD_VARDIR (RO)     : The directory containing the commands/scripts.
+# Arguments:
+#   directory ($1)      : The directory containing the command/scripts.
+# Returns:
+#   0                   : Successful execution.
+#   110                 : The directory does not exist.
+#   $NULL_EXCEPTION     : Null directory.
+# Output:
+#   The message in case of errors.
+#######################################
+function exclude_command() {
+    local directory="$1"
+    check_not_null $directory
+    local full_path=$(readlink -f "$directory")
+
+    [[ -d $full_path ]] || die_on_status 110 "$directory: no such directory"
+
+    local old_pwd="${PWD}"
+    cd "$directory"
+    for alias in * */*
+    do
+        if [[ -x $alias && -f $alias ]]
+        then
+            filename="${alias//\//-}"
+            unlink_from "$full_path/$alias" "$CMD_VARDIR/bin/$filename"
+        fi
+    done
+    cd "${old_pwd}"
+
+    unapply "$full_path" $CMD_VARDIR/cmds_path
+}
+
+#######################################
+# Show the paths of the included directories.
 #
 # Globals:
 #   CAT (RO)            :  The cat command.
-#   CMD_PATH (RO)       :  The directories (colon separated) containing
-#                          the commands/scripts.
+#   CMD_VARDIR (RO)     : The directory containing the commands/scripts.
 # Arguments:
-#   alias ($1)          :  The command alias to print.
+#  None
 # Returns:
-#   0                   : Successful executiong.
+#   0                   : Successful execution.
+# Output:
+#   The list of paths.
+#######################################
+function paths_command() {
+    $CAT $CMD_VARDIR/cmds_path
+}
+
+#######################################
+# Show an existing command/script.
+#
+# Globals:
+#   CAT (RO)            :  The cat command.
+#   CMD_VARDIR (RO)     : The directory containing the commands/scripts.
+# Arguments:
+#   alias ($1)          :  The command alias to show.
+# Returns:
+#   0                   : Successful execution.
 #   3                   : The alias does not exist.
 #   $NULL_EXCEPTION     : Null alias.
 # Output:
 #   The command to execute
 #   The message in case of errors.
 #######################################
-function print_command() {
+function show_command() {
     local alias="$1"
     check_not_null $alias
 
     local cmd_file=""
-    local IFS=$':'
-    for cmd_dir in $CMD_PATH
-    do
+    while read cmd_dir; do
         [[ -f $cmd_dir/$alias ]] && cmd_file="$cmd_dir/$alias"
-    done
-    unset IFS
+    done < $CMD_VARDIR/cmds_path
 
     [[ -z $cmd_file ]] && \
         die_on_status 3 "The alias does not exist."
@@ -160,12 +248,11 @@ function print_command() {
 }
 
 #######################################
-# List all the availble commands/scripts.
+# List all the available commands/scripts.
 #
 # Globals:
 #   LS (RO)            :  The ls command.
-#   CMD_PATH (RO)      :  The directories (colon separated) containing
-#                          the commands/scripts.
+#   CMD_VARDIR (RO)     : The directory containing the commands/scripts.
 # Arguments:
 #   None
 # Returns:
@@ -174,14 +261,13 @@ function print_command() {
 #   The list of commands/scripts.
 #######################################
 function list_command() {
-    local IFS=$':'
-    for cmd_dir in $CMD_PATH
-    do
+    while read cmd_dir; do
         if [[ -d $cmd_dir ]]
         then
             cd "$cmd_dir"
             $LS -R
         fi
-    done
-    unset IFS
+    done < $CMD_VARDIR/cmds_path
+
+    return 0
 }

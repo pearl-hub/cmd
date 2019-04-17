@@ -18,7 +18,7 @@ cmd remove myalias
 mkdir -p $HOME/cmds
 echo "pwd" > $HOME/cmds/myalias2
 chmod +x $HOME/cmds/myalias2
-export CMD_PATH=$CMD_PATH:$HOME/cmds
+cmd include $HOME/cmds
 
 cmd list
 cmd print myalias2

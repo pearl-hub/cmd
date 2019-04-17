@@ -4,7 +4,6 @@ set -e -o pipefail
 
 [ -z "$CMD_VARDIR" ] && { echo "Error: The variable CMD_VARDIR must be specified in order to run this script."; exit 1; }
 [ -d "$CMD_VARDIR" ] || { echo "Error: The value in variable CMD_VARDIR is not a directory."; exit 2; }
-[ -z "$CMD_PATH" ] && { echo "Error: The variable CMD_PATH must be specified in order to run this script."; exit 3; }
 
 # PATH needs to be updated since GNU Coreutils is required in OSX
 # environments. Buava `osx_update_path` cannot be used because in
@@ -49,7 +48,12 @@ usage() {
     echo -e "  r[emove]    [namespace/]alias                      Remove the command."
     echo -e "  e[xecute]   [namespace/]alias ["var1='val1'"]...   Execute the command."
     echo -e "  l[ist]                                             List all the available commands."
-    echo -e "  p[rint]     [namespace/]alias                      Print the command."
+    echo -e "  inc[lude]   directory                              Include all the commands into"
+    echo -e "                                                     directory to cmd."
+    echo -e "  exc[lude]   directory                              Exclude all the commands into"
+    echo -e "                                                     directory from cmd."
+    echo -e "  p[aths]     directory                              List of the registered directory paths."
+    echo -e "  s[how]     [namespace/]alias                       Show the command."
     echo -e "  h[elp], [-h], [--help]                             Show this help message."
     echo
     return 0
@@ -63,8 +67,11 @@ usage() {
 #   COMMAND_ADD (RO,bool)     :  true if the command has been specified.
 #   COMMAND_REMOVE (RO,bool)  :  true if the command has been specified.
 #   COMMAND_EXECUTE (RO,bool) :  true if the command has been specified.
-#   COMMAND_PRINT (RO,bool)   :  true if the command has been specified.
+#   COMMAND_SHOW (RO,bool)    :  true if the command has been specified.
 #   COMMAND_LIST (RO,bool)    :  true if the command has been specified.
+#   COMMAND_INCLUDE (RO,bool) :  true if the command has been specified.
+#   COMMAND_EXCLUDE (RO,bool) :  true if the command has been specified.
+#   COMMAND_PATHS (RO,bool)   :  true if the command has been specified.
 #   OPT_HELP (RO,bool)        :  true if the command has been specified.
 #   ARGS (RO)                 :  the non positional arguments.
 #   COMMAND_ARGS (RO)         :  the command arguments.
@@ -78,14 +85,18 @@ usage() {
 #######################################
 check_cli(){
     $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_EXECUTE || \
-    $COMMAND_PRINT || \
+    $COMMAND_SHOW || \
     $COMMAND_LIST || \
+    $COMMAND_INCLUDE || \
+    $COMMAND_EXCLUDE || \
+    $COMMAND_PATHS || \
     $OPT_HELP || die "No command has been specified. Run: $CMD --help"
     if $OPT_HELP
     then
         if $COMMAND_ADD || $COMMAND_REMOVE || \
             $COMMAND_EXECUTE || \
-            $COMMAND_PRINT || $COMMAND_LIST
+            $COMMAND_SHOW || $COMMAND_LIST || \
+            $COMMAND_INCLUDE || $COMMAND_EXECUTE || $COMMAND_PATHS
         then
             die "The help option must be used exclusively"
         fi
@@ -96,14 +107,14 @@ check_cli(){
     fi
 
     # All commands are supposed to get at most one argument
-    if $COMMAND_LIST || $OPT_HELP
+    if $COMMAND_LIST || $OPT_HELP || $COMMAND_PATHS
     then
         if [[ ${#COMMAND_ARGS[@]} -ne 0 ]]
         then
             die "Too many arguments for the given command. Run: $CMD --help"
         fi
     fi
-    if $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_PRINT
+    if $COMMAND_ADD || $COMMAND_REMOVE || $COMMAND_SHOW
     then
         if [[ ${#COMMAND_ARGS[@]} -ne 1 ]]
         then
@@ -122,8 +133,11 @@ check_cli(){
 #   COMMAND_ADD (WO,bool)     :  true if the command has been specified.
 #   COMMAND_REMOVE (WO,bool)  :  true if the command has been specified.
 #   COMMAND_EXECUTE (WO,bool) :  true if the command has been specified.
-#   COMMAND_PRINT (WO,bool)   :  true if the command has been specified.
+#   COMMAND_SHOW (WO,bool)    :  true if the command has been specified.
 #   COMMAND_LIST (WO,bool)    :  true if the command has been specified.
+#   COMMAND_INCLUDE (WO,bool) :  true if the command has been specified.
+#   COMMAND_EXCLUDE (WO,bool) :  true if the command has been specified.
+#   COMMAND_PATHS (WO,bool)   :  true if the command has been specified.
 #   OPT_HELP (WO,bool)        :  true if the command has been specified.
 #   ARGS (WO)                 :  the non positional arguments.
 #   COMMAND_ARGS (WO)         :  the command arguments.
@@ -140,7 +154,10 @@ function parse_arguments(){
     COMMAND_REMOVE=false
     COMMAND_EXECUTE=false
     COMMAND_LIST=false
-    COMMAND_PRINT=false
+    COMMAND_INCLUDE=false
+    COMMAND_EXCLUDE=false
+    COMMAND_PATHS=false
+    COMMAND_SHOW=false
     COMMAND_ARGS=()
     OPT_HELP=false
 
@@ -155,8 +172,14 @@ function parse_arguments(){
         COMMAND_EXECUTE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
         list|l)
         COMMAND_LIST=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
-        print|p)
-        COMMAND_PRINT=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        include|inc)
+        COMMAND_INCLUDE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        exclude|exc)
+        COMMAND_EXCLUDE=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        paths|p)
+        COMMAND_PATHS=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
+        show|s)
+        COMMAND_SHOW=true; shift ; COMMAND_ARGS=("$@") ; shift ${#} ;;
 
         help|h|-h|--help) OPT_HELP=true ; shift ;;
 
@@ -180,8 +203,11 @@ function parse_arguments(){
 #   COMMAND_ADD (RO,bool)     :  true if the command has been specified.
 #   COMMAND_REMOVE (RO,bool)  :  true if the command has been specified.
 #   COMMAND_EXECUTE (RO,bool) :  true if the command has been specified.
-#   COMMAND_PRINT (RO,bool)   :  true if the command has been specified.
+#   COMMAND_SHOW (RO,bool)    :  true if the command has been specified.
 #   COMMAND_LIST (RO,bool)    :  true if the command has been specified.
+#   COMMAND_INCLUDE (RO,bool) :  true if the command has been specified.
+#   COMMAND_EXCLUDE (RO,bool) :  true if the command has been specified.
+#   COMMAND_PATHS (RO,bool)   :  true if the command has been specified.
 #   OPT_HELP (RO,bool)        :  true if the command has been specified.
 #   ARGS (RO)                 :  the non positional arguments.
 #   COMMAND_ARGS (RO)         :  the command arguments.
@@ -203,8 +229,14 @@ function execute_operation(){
         execute_command "${COMMAND_ARGS[@]}"
     elif $COMMAND_LIST; then
         list_command
-    elif $COMMAND_PRINT; then
-        print_command "${COMMAND_ARGS[0]}"
+    elif $COMMAND_INCLUDE; then
+        include_command "${COMMAND_ARGS[@]}"
+    elif $COMMAND_EXCLUDE; then
+        exclude_command "${COMMAND_ARGS[@]}"
+    elif $COMMAND_SHOW; then
+        show_command "${COMMAND_ARGS[0]}"
+    elif $COMMAND_PATHS; then
+        paths_command
     fi
 
     return 0

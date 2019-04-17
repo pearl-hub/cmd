@@ -86,12 +86,15 @@ myls
 Attach existing commands
 ------------------------
 If there are already existing commands in a given directory, you can use the
-variable environment `CMD_PATH` to include such commands into `cmd` program:
+`include` command to include such commands into `cmd` program:
 
 ```sh
-export CMD_PATH="/mydirectory/to/new/commands:$CMD_PATH"
+cmd include "/mydirectory/to/new/commands"
 cmd list
 ```
+
+`cmd` will add all the executable scripts in that directory and in the nested
+directories (up to one level only).
 
 Installation
 ============

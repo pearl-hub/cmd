@@ -12,16 +12,18 @@ language: bash
 sudo: required
 
 env:
-  - TRAVIS_BASH_VERSION="4.1" TRAVIS_ZSH_VERSION="5.0.0" TRAVIS_FISH_VERSION="2.2.0" TRAVIS_GIT_VERSION="1.8.0"
+  - TRAVIS_BASH_VERSION="4.1" TRAVIS_ZSH_VERSION="5.0.0" TRAVIS_FISH_VERSION="2.2.0" TRAVIS_GIT_VERSION="1.8.5"
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./tests/test-utils/installs/install-linux-deps.sh; fi;
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./tests/test-utils/installs/install-osx-deps.sh; fi;
 
 install:
-  - curl -sL https://git.io/vV4yE | sh
-  - source ~/.bashrc
-  - echo "PEARL_PACKAGES['test']='${PWD}'" >> ~/.config/pearl/pearl.conf
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./tests/test-utils/installs/install-linux-pearl.sh; fi;
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./tests/test-utils/installs/install-osx-pearl.sh; fi;
+  - export PATH="~/.local/bin:/usr/local/bin:$PATH"
+
+  - echo "PEARL_PACKAGES['test']={'url':'${PWD}'}" >> ~/.config/pearl/pearl.conf
 
 script:
   - bash ./tests/test-utils/integ-tests/default-integ-tests.sh

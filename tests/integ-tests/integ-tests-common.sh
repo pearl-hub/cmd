@@ -7,7 +7,7 @@ export EDITOR="eval echo ls -l >"
 cmd add myalias
 
 cmd list
-cmd print myalias
+cmd show myalias
 echo y | cmd execute myalias
 # Alternative execution:
 myalias
@@ -21,7 +21,7 @@ chmod +x $HOME/cmds/myalias2
 cmd include $HOME/cmds
 
 cmd list
-cmd print myalias2
+cmd show myalias2
 echo y | cmd execute myalias2
 
 rm -rf $HOME/cmds

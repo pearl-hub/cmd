@@ -1,3 +1,3 @@
 export CMD_VARDIR="$PEARL_PKGVARDIR"
 
-export PATH="$PATH:$CMD_VARDIR/bin"
+add_to_path "$CMD_VARDIR/bin"

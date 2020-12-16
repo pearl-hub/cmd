@@ -1,4 +1,4 @@
 set -x CMD_VARDIR $PEARL_PKGVARDIR
 
-set -x PATH $PATH $CMD_VARDIR/bin
+add_to_path "$CMD_VARDIR/bin"
 # vim: ft=sh
